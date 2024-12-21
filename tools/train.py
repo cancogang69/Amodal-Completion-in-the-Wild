@@ -58,9 +58,7 @@ def main(args):
 
     for epoch in tqdm(range(args.epoch), desc="Train", leave=True):
         loss = 0
-        for data in tqdm(
-            train_loader, desc=f"Train: {epoch}, loss: {loss}", leave=False
-        ):
+        for data in tqdm(train_loader, desc=f"Train: {epoch}", leave=False):
             visible_mask, invisible_mask, final_mask, bbox, sd_feats = data
             model.set_input(rgb=sd_feats, mask=visible_mask, target=final_mask)
             loss = model.step()
