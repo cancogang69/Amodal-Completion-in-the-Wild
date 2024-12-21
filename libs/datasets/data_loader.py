@@ -136,7 +136,11 @@ class DatasetLoader(object):
         return mask
 
     def __next__(self):
+        if self.curr_idx == self.anno_len:
+            raise StopIteration
+
         anno = self.annos[self.curr_idx]
+        self.curr_idx += 1
         image_h, image_w = anno["image_height"], anno["image_width"]
 
         visible_mask = self.__get_mask(
