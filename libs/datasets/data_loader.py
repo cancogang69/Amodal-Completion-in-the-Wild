@@ -114,7 +114,6 @@ class DatasetLoader(object):
                     src_ft, bbox, pad_value=(0,) * src_ft.shape[-1]
                 )  # h x w x L
                 src_ft = torch.tensor(src_ft).permute(2, 0, 1).unsqueeze(0)
-                print(cur_upsample_sz, cur_upsample_sz)
                 src_ft = nn.Upsample(
                     size=(cur_upsample_sz, cur_upsample_sz), mode="bilinear"
                 )(src_ft).squeeze(

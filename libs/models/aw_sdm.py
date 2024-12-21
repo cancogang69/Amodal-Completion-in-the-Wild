@@ -34,7 +34,7 @@ class AWSDM(SingleStageModel):
             bbox=bbox,
             height=mask.shape[1],
             width=mask.shape[0],
-            interp=self.params["inference"]["amodal_interp"],
+            interp="linear",
         )
 
         intersection = ((predict == 1) & (target == 1)).sum()

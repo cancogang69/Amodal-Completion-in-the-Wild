@@ -49,12 +49,12 @@ def main(args):
     )
 
     for epoch in range(args.epoch):
-        for i, data in enumerate(train_loader):
-            visible_mask, invisible_mask, final_mask, bbox, sd_feats = data
-            model.set_input(rgb=sd_feats, mask=visible_mask, target=final_mask)
-            loss = model.step()
-            if i % args.trainer["print_freq"] == 0:
-                print(f"Epoch: {epoch}, step: {i+1}, loss: {loss}")
+        # for i, data in enumerate(train_loader):
+        #     visible_mask, invisible_mask, final_mask, bbox, sd_feats = data
+        #     model.set_input(rgb=sd_feats, mask=visible_mask, target=final_mask)
+        #     loss = model.step()
+        #     if i % args.trainer["print_freq"] == 0:
+        #         print(f"Epoch: {epoch}, step: {i+1}, loss: {loss}")
 
         total_iou = 0
         for data in val_loader:
