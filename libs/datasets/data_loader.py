@@ -67,15 +67,6 @@ class DatasetLoader(object):
 
         return org_src_ft_dict
 
-        # org_src_ft_dict = {}
-        # for layer_i in [0, 1, 2, 3]:
-        #     feat_dir = feature_dirs + str(layer_i)
-        #     feat = torch.load(os.path.join(feat_dir, image_name[:-4] + ".pt"))
-        #     org_src_ft = feat.permute(1, 2, 0).float().numpy()  # h x w x L
-        #     org_src_ft_dict[layer_i] = org_src_ft
-
-        # return org_src_ft_dict
-
     def __combime_mask_with_sd_features(
         self, image_height, image_width, bbox, sd_features
     ):
@@ -158,6 +149,7 @@ class DatasetLoader(object):
 
         bbox = mask_to_bbox(visible_mask)
         sd_feats = self.__get_feature_from_save(anno["feature_file_name"])
+        print(anno["image_height"], anno["image_width"])
         sd_feats = self.__combime_mask_with_sd_features(
             image_height=anno["image_height"],
             image_width=anno["image_width"],
