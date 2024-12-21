@@ -56,7 +56,7 @@ def main(args):
         args.val_anno_path, args.feature_root, args.feature_subdir_prefix
     )
 
-    for epoch in tqdm(range(args.epoch), desc="Train", leave=False):
+    for epoch in tqdm(range(args.epoch), desc="Train"):
         loss = 0
         for data in tqdm(train_loader, leave=False):
             visible_mask, invisible_mask, final_mask, bbox, sd_feats = data
@@ -64,7 +64,7 @@ def main(args):
             loss = model.step()
 
         total_iou = 0
-        for data in tqdm(val_loader):
+        for data in tqdm(val_loader, leave=False):
             visible_mask, invisible_mask, final_mask, bbox, sd_feats = data
             iou = model.evaluate(
                 rgb=sd_feats, mask=visible_mask, bbox=bbox, target=final_mask
