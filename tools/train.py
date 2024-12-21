@@ -34,14 +34,14 @@ def parse_args():
 
 
 def main(args):
-    with open(args.config) as f:
+    with open(args.config_path) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
 
     for k, v in config.items():
         setattr(args, k, v)
 
     if not hasattr(args, "exp_path"):
-        args.exp_path = os.path.dirname(args.config)
+        args.exp_path = os.path.dirname(args.config_path)
 
     model = AWSDM(args.model, dist_model=False)
     model.load_state(args.pretrained_path)
