@@ -65,6 +65,15 @@ class DatasetLoader(object):
             org_src_ft = feat.permute(1, 2, 0).float().numpy()  # h x w x L
             org_src_ft_dict[layer_i] = org_src_ft
 
+        # return org_src_ft_dict
+
+        org_src_ft_dict = {}
+        for layer_i in [0, 1, 2, 3]:
+            feat_dir = feature_dirs + str(layer_i)
+            feat = torch.load(os.path.join(feat_dir, image_name[:-4] + ".pt"))
+            org_src_ft = feat.permute(1, 2, 0).float().numpy()  # h x w x L
+            org_src_ft_dict[layer_i] = org_src_ft
+
         return org_src_ft_dict
 
     def __combime_mask_with_sd_features(
@@ -72,6 +81,7 @@ class DatasetLoader(object):
     ):
         org_h, org_w = image_height, image_width
         src_ft_dict = {}
+        print(sd_features)
         for layer_i in [0, 1, 2, 3]:
             org_src_ft = sd_features[layer_i]
             src_ft_new_bbox = [
@@ -101,7 +111,6 @@ class DatasetLoader(object):
                 )  # L x h x w
                 src_ft = src_ft.permute(1, 2, 0).cpu().numpy()  # h x w x L
             else:
-
                 src_ft = torch.tensor(org_src_ft).permute(2, 0, 1).unsqueeze(0)
                 src_ft = nn.Upsample(size=(org_h, org_w), mode="bilinear")(
                     src_ft
