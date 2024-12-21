@@ -134,10 +134,16 @@ def main(args):
     up_ft_indices = [0, 1, 2, 3]
     imgs_path = args.input_path
     save_path = args.output_path
+    start_index = args.start_index
+    end_index = args.start_index + args.no_image
 
     annos = get_annos(args.anno_path)
 
-    for anno in tqdm(annos):
+    for i, anno in tqdm(enumerate(annos)):
+        if i < start_index:
+            continue
+        if i == end_index:
+            break
         img_path = os.path.join(imgs_path, anno["file_name"])
         img = np.array(Image.open(img_path))
         img[
@@ -166,6 +172,8 @@ def main(args):
                 cur_folder, f"{anno['file_name'][:-4]}_{anno['id']}_.pt"
             )
             torch.save(value.squeeze(0).cpu(), tensor_file_name)
+
+    print("Done!")
 
 
 if __name__ == "__main__":
