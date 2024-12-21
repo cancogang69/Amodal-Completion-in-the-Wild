@@ -24,7 +24,7 @@ class AWSDM(SingleStageModel):
         for key_i in rgb.keys():
             self.rgb[key_i] = torch.Tensor(rgb[key_i]).unsqueeze(0).cuda()
         self.mask = torch.Tensor(mask).unsqueeze(0).unsqueeze(0).cuda()
-        self.target = torch.Tensor(target).unsqueeze(0).unsqueeze(0).cuda()
+        self.target = torch.Tensor(target).unsqueeze(0).cuda()
 
     def evaluate(
         self,
