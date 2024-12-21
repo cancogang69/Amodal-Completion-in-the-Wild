@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import numpy as np
 
 from libs.utils import average_gradients
 import libs.utils.inference as infer
@@ -22,7 +23,7 @@ class AWSDM(SingleStageModel):
         self.rgb = {}
         for key_i in rgb.keys():
             self.rgb[key_i] = rgb[key_i].cuda()
-        self.mask = torch.Tensor(torch.cat([mask], dim=1)).cuda()
+        self.mask = torch.Tensor(np.expand_dims([mask], dim=0)).cuda()
         self.target = torch.Tensor([target]).cuda()
 
     def evaluate(
