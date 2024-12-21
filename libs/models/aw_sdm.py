@@ -53,7 +53,7 @@ class AWSDM(SingleStageModel):
             else:
                 output = self.model(self.mask)
 
-        return output.cpu().numpy()
+        return output.detach_().argmax(1)[0].cpu().numpy().astype(np.uint8)
 
     def step(self):
         if self.use_rgb:
