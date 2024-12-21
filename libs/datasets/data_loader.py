@@ -9,7 +9,9 @@ from libs.utils import mask_to_bbox, crop_padding
 
 
 class DatasetLoader(object):
-    def __init__(self, anno_path, feature_root, feature_subdir_prefix="t_181_index_"):
+    def __init__(
+        self, anno_path, feature_root, feature_subdir_prefix="t_181_index_"
+    ):
         data = cvb.load(anno_path)
         images_info = dict(
             [[img_info["id"], img_info] for img_info in data["images"]]
@@ -46,7 +48,7 @@ class DatasetLoader(object):
         self.feature_root = feature_root
         self.feature_subdir_prefix = feature_subdir_prefix
 
-    def __iter__(self)
+    def __iter__(self):
         self.curr_idx = 0
         return self
 
