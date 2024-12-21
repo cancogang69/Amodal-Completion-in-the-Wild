@@ -126,7 +126,7 @@ class DatasetLoader(object):
         mask = np.zeros([height, width])
         for polygon in polygons:
             mask = cv2.fillPoly(
-                mask, np.array(polygon, dtype=int), [255, 255, 255]
+                mask, np.array([polygon]), color=[255, 255, 255]
             )
 
         return mask
