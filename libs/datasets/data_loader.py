@@ -148,6 +148,7 @@ class DatasetLoader(object):
         )
 
         bbox = mask_to_bbox(visible_mask)
+        print(bbox)
         sd_feats = self.__get_feature_from_save(anno["feature_file_name"])
         print(anno["image_height"], anno["image_width"])
         sd_feats = self.__combime_mask_with_sd_features(
