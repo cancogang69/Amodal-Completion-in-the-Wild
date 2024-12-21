@@ -147,6 +147,7 @@ class DatasetLoader(object):
             image_h, image_w, anno["mask"]["segmentations"]
         )
 
+        print(np.sum((visible_mask == 1)))
         bbox = mask_to_bbox(visible_mask)
         print(bbox)
         sd_feats = self.__get_feature_from_save(anno["feature_file_name"])
