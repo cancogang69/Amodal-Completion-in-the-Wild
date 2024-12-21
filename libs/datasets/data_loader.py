@@ -62,7 +62,7 @@ class DatasetLoader(object):
             feat = torch.load(
                 os.path.join(feat_dir, f"{feature_file_name.split('.')[0]}_.pt")
             )
-            org_src_ft = feat.permute(1, 2, 0).float().numpy()  # h x w x L
+            org_src_ft = feat.permute(1, 2, 0).float()  # h x w x L
             org_src_ft_dict[layer_i] = org_src_ft
 
         return org_src_ft_dict
