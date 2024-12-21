@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image
 import sys
 
-from tqdm import tqdm
+from tqdm.auto import tqdm
 import torch
 
 sys.path.append(".")
