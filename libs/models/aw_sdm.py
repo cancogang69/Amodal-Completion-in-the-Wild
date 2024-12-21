@@ -3,7 +3,7 @@ import torch.nn as nn
 import numpy as np
 
 from libs.utils import average_gradients
-import libs.utils.inference as infer
+from libs.utils.inference import recover_mask
 from . import SingleStageModel
 
 
@@ -26,74 +26,33 @@ class AWSDM(SingleStageModel):
         self.mask = torch.Tensor(mask).unsqueeze(0).unsqueeze(0).cuda()
         self.target = torch.Tensor(target).unsqueeze(0).long().cuda()
 
-    def evaluate(
-        self,
-        image,
-        inmodal,
-        category,
-        bboxes,
-        amodal,
-        gt_order_matrix,
-        input_size,
-    ):
-        # amodal
-        amodal_patches_pred = infer.infer_amodal_sup(
-            self,
-            image,
-            inmodal,
-            category,
-            bboxes,
-            use_rgb=self.use_rgb,
-            th=self.params["inference"]["positive_th_amodal"],
-            input_size=input_size,
-            min_input_size=16,
+    def evaluate(self, rgb, mask, bbox, target):
+        self.set_input(rgb=rgb, mask=mask, target=target)
+        output = self.forward_only()
+        predict = recover_mask(
+            mask=output,
+            bbox=bbox,
+            height=mask.shape[1],
+            width=mask.shape[0],
             interp=self.params["inference"]["amodal_interp"],
         )
-        amodal_pred = infer.patch_to_fullimage(
-            amodal_patches_pred,
-            bboxes,
-            image.shape[0],
-            image.shape[1],
-            interp=self.params["inference"]["amodal_interp"],
-        )
-        intersection = ((amodal_pred == 1) & (amodal == 1)).sum()
-        union = ((amodal_pred == 1) | (amodal == 1)).sum()
-        target = (amodal == 1).sum()
 
-        return 0, 1, 0, 1, intersection, union, target
+        intersection = ((predict == 1) & (target == 1)).sum()
+        union = ((predict == 1) | (target == 1)).sum()
+        predict_area = (predict == 1).sum()
+        target_area = (target == 1).sum()
+        iou = intersection / (predict_area + target_area + union)
 
-    def forward_only(self, ret_loss=True):
+        return iou
+
+    def forward_only(self):
         with torch.no_grad():
             if self.use_rgb:
                 output = self.model(self.mask, self.rgb)
             else:
                 output = self.model(self.mask)
-            if output.shape[2] != self.mask.shape[2]:
-                output = nn.functional.interpolate(
-                    output,
-                    size=self.mask.shape[2:4],
-                    mode="bilinear",
-                    align_corners=True,
-                )
-        comp = output.argmax(dim=1, keepdim=True).float()
 
-        vis_target = self.target.cpu().clone().float()
-        if vis_target.max().item() == 255:
-            vis_target[vis_target == 255] = 0.5
-        vis_target = vis_target.unsqueeze(1)
-        if self.use_rgb:
-            cm_tensors = [self.rgb]
-        else:
-            cm_tensors = []
-        ret_tensors = {
-            "common_tensors": cm_tensors,
-            "mask_tensors": [self.mask, comp, vis_target],
-        }
-        if ret_loss:
-            loss = self.criterion(output, self.target) / self.world_size
-            return ret_tensors, {"loss": loss}
-        else:
-            return ret_tensors
+        return output.cpu().numpy()
 
     def step(self):
         if self.use_rgb:

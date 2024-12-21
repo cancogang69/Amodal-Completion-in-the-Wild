@@ -20,7 +20,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config-path", required=True, type=str)
     parser.add_argument("--pretrained-path", required=True, type=str)
-    parser.add_argument("--anno-path", required=True, type=str)
+    parser.add_argument("--train-anno-path", required=True, type=str)
+    parser.add_argument("--val-anno-path", type=str)
     parser.add_argument("--image-root", required=True, type=str)
     parser.add_argument("--feature-root", required=True, type=str)
     parser.add_argument("--feature-subdir-prefix", required=True, type=str)
@@ -48,15 +49,33 @@ def main(args):
     model.switch_to("train")
 
     train_loader = DatasetLoader(
-        args.anno_path, args.feature_root, args.feature_subdir_prefix
+        args.train_anno_path, args.feature_root, args.feature_subdir_prefix
     )
 
-    for _ in tqdm(range(args.epoch)):
-        for data in train_loader:
+    val_loader = DatasetLoader(
+        args.val_anno_path, args.feature_root, args.feature_subdir_prefix
+    )
+
+    for epoch in tqdm(range(args.epoch), desc="Train", leave=True):
+        loss = 0
+        for data in tqdm(
+            train_loader, desc=f"Train: {epoch}, loss: {loss}", leave=False
+        ):
             visible_mask, invisible_mask, final_mask, bbox, sd_feats = data
             model.set_input(rgb=sd_feats, mask=visible_mask, target=final_mask)
             loss = model.step()
-            print(loss["loss"])
+
+        total_iou = 0
+        for data in tqdm(val_loader, desc=f"Validation: {epoch}", leave=False):
+            visible_mask, invisible_mask, final_mask, bbox, sd_feats = data
+            iou = model.evaluate(
+                rgb=sd_feats, mask=visible_mask, bbox=bbox, target=final_mask
+            )
+
+            total_iou += iou
+
+        mIoU = total_iou / val_loader.anno_len
+        print(f"\nEpoch {epoch} mIou: {mIoU}")
 
 
 if __name__ == "__main__":

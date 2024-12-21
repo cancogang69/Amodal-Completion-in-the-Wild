@@ -48,6 +48,8 @@ class DatasetLoader(object):
         self.feature_root = feature_root
         self.feature_subdir_prefix = feature_subdir_prefix
 
+        self.anno_len = len(self.annos)
+
     def __iter__(self):
         self.curr_idx = 0
         return self
