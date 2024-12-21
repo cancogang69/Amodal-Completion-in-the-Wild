@@ -6,11 +6,11 @@ import numpy as np
 from PIL import Image
 import sys
 
-from libs import utils
 from tqdm import tqdm
 import torch
 
 sys.path.append(".")
+from libs import utils
 from libs.datasets.data_loader import DatasetLoader
 from libs.models.aw_sdm import AWSDM
 import libs.utils.inference as infer
