@@ -57,9 +57,11 @@ class DatasetLoader(object):
         for layer_i in [0, 1, 2, 3]:
             feat_dir = os.path.join(
                 self.feature_root,
-                f"{self.feature_subdir_prefix}_{str(layer_i)}_",
+                f"{self.feature_subdir_prefix}_{str(layer_i)}",
             )
-            feat = torch.load(os.path.join(feat_dir, feature_file_name))
+            feat = torch.load(
+                os.path.join(feat_dir, f"{feature_file_name.split('.')[0]}_.pt")
+            )
             org_src_ft = feat.permute(1, 2, 0).float().numpy()  # h x w x L
             org_src_ft_dict[layer_i] = org_src_ft
 
