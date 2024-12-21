@@ -67,8 +67,10 @@ class DatasetLoader(object):
 
         return org_src_ft_dict
 
-    def __combime_mask_with_sd_features(self, anno, bbox, sd_features):
-        org_h, org_w = anno["image_height"], anno["image_width"]
+    def __combime_mask_with_sd_features(
+        self, image_height, image_width, bbox, sd_features
+    ):
+        org_h, org_w = image_height, image_width
         src_ft_dict = {}
         for layer_i in [0, 1, 2, 3]:
             org_src_ft = sd_features[layer_i]
@@ -134,7 +136,6 @@ class DatasetLoader(object):
     def __next__(self):
         anno = self.annos[self.curr_idx]
         image_h, image_w = anno["image_height"], anno["image_width"]
-        sd_feats = self.__get_feature_from_save(anno["feature_file_name"])
 
         visible_mask = self.__get_mask(
             image_h, image_w, anno["mask"]["visible_segmentations"]
@@ -147,5 +148,12 @@ class DatasetLoader(object):
         )
 
         bbox = mask_to_bbox(visible_mask)
+        sd_feats = self.__get_feature_from_save(anno["feature_file_name"])
+        sd_feats = self.__combime_mask_with_sd_features(
+            image_height=anno["image_height"],
+            image_width=anno["image_width"],
+            bbox=bbox,
+            sd_features=sd_feats,
+        )
 
         return [visible_mask, invisible_mask, final_mask, bbox, sd_feats]
