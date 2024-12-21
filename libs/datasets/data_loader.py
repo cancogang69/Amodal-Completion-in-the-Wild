@@ -146,11 +146,8 @@ class DatasetLoader(object):
         final_mask = self.__get_mask(
             image_h, image_w, anno["mask"]["segmentations"]
         )
-
         bbox = mask_to_bbox(visible_mask)
-        print(bbox)
         sd_feats = self.__get_feature_from_save(anno["feature_file_name"])
-        print(anno["image_height"], anno["image_width"])
         sd_feats = self.__combime_mask_with_sd_features(
             image_height=anno["image_height"],
             image_width=anno["image_width"],
