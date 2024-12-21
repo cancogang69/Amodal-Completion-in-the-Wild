@@ -1,104 +1,145 @@
+import os
+import torch
+import torch.nn as nn
 import numpy as np
 import cvbase as cvb
-import pycocotools.mask as maskUtils
+import cv2
 
-from libs.utils import mask_to_bbox
+from libs.utils import mask_to_bbox, crop_padding
 
 
 class DatasetLoader(object):
-    def __init__(self, anno_path):
+    def __init__(self, anno_path, feature_root, feature_subdir_prefix="t_181_index_"):
         data = cvb.load(anno_path)
-        self.images_info = data["images"]
-        self.annot_info = data["annotations"]
-
-        self.indexing = []
-        for i, ann in enumerate(self.annot_info):
-            for j in range(len(ann["regions"])):
-                self.indexing.append((i, j))
-
-    def get_instance_length(self):
-        return len(self.indexing)
-
-    def get_image_length(self):
-        return len(self.images_info)
-
-    def get_gt_ordering(self, imgidx):
-        num = len(self.annot_info[imgidx]["regions"])
-        gt_order_matrix = np.zeros((num, num), dtype=np.int)
-        order_str = self.annot_info[imgidx]["depth_constraint"]
-        if len(order_str) == 0:
-            return gt_order_matrix
-        order_str = order_str.split(",")
-        for o in order_str:
-            idx1, idx2 = o.split("-")
-            idx1, idx2 = int(idx1) - 1, int(idx2) - 1
-            gt_order_matrix[idx1, idx2] = 1
-            gt_order_matrix[idx2, idx1] = -1
-        return gt_order_matrix  # num x num
-
-    def get_instance(self, idx, with_gt=False, load_occ_label=False):
-        imgidx, regidx = self.indexing[idx]
-        # img
-        img_info = self.images_info[imgidx]
-        image_fn = img_info["file_name"]
-        w, h = img_info["width"], img_info["height"]
-        # region
-        reg = self.annot_info[imgidx]["regions"][regidx]
-        modal, bbox, category, amodal = read_MP3D(
-            reg, h, w, load_occ_label=load_occ_label
+        images_info = dict(
+            [[img_info["id"], img_info] for img_info in data["images"]]
         )
-        return modal, bbox, category, image_fn, amodal
+        annos_info = data["annotations"]
 
-    def read_MP3D(self, ann, h, w, load_occ_label=False):
-        assert "visible_mask" in ann.keys()  # must occluded
-        m_rle = [ann["visible_mask"]]
-        modal = maskUtils.decode(m_rle).squeeze()
-        a_rle = [ann["segmentation"]]
-        amodal = maskUtils.decode(a_rle).squeeze()
-        bbox = mask_to_bbox(modal)
-        category = ann["category_id"]
-        return modal, bbox, category, amodal  # category as constant 1
+        self.annos = []
+        for anno in annos_info:
+            img_info = images_info[anno["image_id"]]
+            black_start = 0
+            black_end = 0
+            if anno["last_col"] > 0:
+                black_start = anno["last_col"]
+                black_end = img_info["width"]
+            else:
+                black_end = anno["last_col"] + 1
 
-    def get_image_instances(
-        self,
-        idx,
-        with_gt=False,
-        with_anns=False,
-        ignore_stuff=False,
-        load_occ_label=False,
-    ):
-        ann_info = self.annot_info[idx]
-        img_info = self.images_info[idx]
-        image_fn = img_info["file_name"]
-        w, h = img_info["width"], img_info["height"]
-        ret_modal = []
-        ret_bboxes = []
-        ret_category = []
-        ret_amodal = []
-        for reg in ann_info["regions"]:
-            if ignore_stuff and reg["isStuff"]:
-                continue
-            modal, bbox, category, amodal = self.read_MP3D(
-                reg, h, w, load_occ_label=load_occ_label
+            feature_file_name = (
+                f"{img_info['file_name'].split('.')[0]}_{anno['id']}.pt"
             )
-            ret_modal.append(modal)
-            ret_bboxes.append(bbox)
-            ret_category.append(category)
-            ret_amodal.append(amodal)
-        if with_anns:
-            return (
-                np.array(ret_modal),
-                ret_category,
-                np.array(ret_bboxes),
-                np.array(ret_amodal),
-                image_fn,
-                ann_info,
+
+            self.annos.append(
+                {
+                    "mask": anno,
+                    "image_file_name": img_info["file_name"],
+                    "feature_file_name": feature_file_name,
+                    "image_height": img_info["height"],
+                    "image_width": img_info["width"],
+                    "black_start": black_start,
+                    "black_end": black_end,
+                }
             )
-        else:
-            return (
-                np.array(ret_modal),
-                ret_category,
-                np.array(ret_bboxes),
-                np.array(ret_amodal),
-                image_fn,
+
+        self.feature_root = feature_root
+        self.feature_subdir_prefix = feature_subdir_prefix
+
+    def __iter__(self)
+        self.curr_idx = 0
+        return self
+
+    def __get_feature_from_save(self, feature_file_name):
+        org_src_ft_dict = {}
+        for layer_i in [0, 1, 2, 3]:
+            feat_dir = os.path.join(
+                self.feature_root,
+                f"{self.feature_subdir_prefix}_{str(layer_i)}",
             )
+            feat = torch.load(os.path.join(feat_dir, feature_file_name))
+            org_src_ft = feat.permute(1, 2, 0).float().numpy()  # h x w x L
+            org_src_ft_dict[layer_i] = org_src_ft
+
+        return org_src_ft_dict
+
+    def __combime_mask_with_sd_features(self, anno, bbox, sd_features):
+        org_h, org_w = anno["image_height"], anno["image_width"]
+        src_ft_dict = {}
+        for layer_i in [0, 1, 2, 3]:
+            org_src_ft = sd_features[layer_i]
+            src_ft_new_bbox = [
+                int(bbox[0] * org_src_ft.shape[1] / org_w),
+                int(bbox[1] * org_src_ft.shape[0] / org_h),
+                int(bbox[2] * org_src_ft.shape[1] / org_w),
+                int(bbox[3] * org_src_ft.shape[0] / org_h),
+            ]
+            src_ft = crop_padding(
+                org_src_ft,
+                src_ft_new_bbox,
+                pad_value=(0,) * org_src_ft.shape[-1],
+            )
+            src_ft = torch.tensor(src_ft).permute(2, 0, 1).unsqueeze(0)
+            src_ft = src_ft.to("cuda")
+            if layer_i == 0:
+                cur_upsample_sz = 24
+            elif layer_i == 1:
+                cur_upsample_sz = 48
+            else:
+                cur_upsample_sz = 96
+            if src_ft.shape[-2] != 0 and src_ft.shape[-1] != 0:
+                src_ft = nn.Upsample(
+                    size=(cur_upsample_sz, cur_upsample_sz), mode="bilinear"
+                )(src_ft).squeeze(
+                    0
+                )  # L x h x w
+                src_ft = src_ft.permute(1, 2, 0).cpu().numpy()  # h x w x L
+            else:
+
+                src_ft = torch.tensor(org_src_ft).permute(2, 0, 1).unsqueeze(0)
+                src_ft = nn.Upsample(size=(org_h, org_w), mode="bilinear")(
+                    src_ft
+                ).squeeze(
+                    0
+                )  # L x h x w
+                src_ft = src_ft.permute(1, 2, 0).cpu().numpy()  # h x w x L
+                src_ft = crop_padding(
+                    src_ft, bbox, pad_value=(0,) * src_ft.shape[-1]
+                )  # h x w x L
+                src_ft = torch.tensor(src_ft).permute(2, 0, 1).unsqueeze(0)
+                src_ft = nn.Upsample(
+                    size=(cur_upsample_sz, cur_upsample_sz), mode="bilinear"
+                )(src_ft).squeeze(
+                    0
+                )  # L x h x w
+                src_ft = src_ft.permute(1, 2, 0).cpu().numpy()  # h x w x L
+
+            src_ft_dict[layer_i] = src_ft
+
+        return src_ft_dict
+
+    def __get_mask(self, height, width, polygons):
+        mask = np.zeros([height, width])
+        for polygon in polygons:
+            mask = cv2.fillPoly(mask, polygon, [255, 255, 255])
+
+        return mask
+
+    def __next__(self):
+        anno = self.annos[self.curr_idx]
+        image_h, image_w = anno["image_height"], anno["image_width"]
+        sd_feats = self.__get_feature_from_save(anno["feature_file_name"])
+
+        visible_mask = self.__get_mask(
+            image_h, image_w, anno["mask"]["visible_segmentations"]
+        )
+        invisible_mask = self.__get_mask(
+            image_h, image_w, anno["mask"]["invisible_segmentations"]
+        )
+        final_mask = self.__get_mask(
+            image_h, image_w, anno["mask"]["segmentations"]
+        )
+
+        bbox = mask_to_bbox(visible_mask)
+
+        return [visible_mask, invisible_mask, final_mask, bbox, sd_feats]

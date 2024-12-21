@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from libs import utils
+from libs.utils import average_gradients
 import libs.utils.inference as infer
 from . import SingleStageModel
 
@@ -15,7 +15,7 @@ class AWSDM(SingleStageModel):
 
         if pretrained_path is not None:
             self.load_state(pretrained_path)
-        # loss
+
         self.criterion = nn.CrossEntropyLoss()
 
     def set_input(self, rgb=None, mask=None, target=None):
@@ -102,6 +102,6 @@ class AWSDM(SingleStageModel):
         loss = self.criterion(output, self.target) / self.world_size
         self.optim.zero_grad()
         loss.backward()
-        utils.average_gradients(self.model)
+        average_gradients(self.model)
         self.optim.step()
         return {"loss": loss}
