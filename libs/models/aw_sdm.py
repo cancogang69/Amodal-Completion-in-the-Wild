@@ -29,12 +29,11 @@ class AWSDM(SingleStageModel):
     def evaluate(self, rgb, mask, bbox, target):
         self.set_input(rgb=rgb, mask=mask, target=target)
         output = self.forward_only()
-        print(output.shape)
         predict = recover_mask(
             mask=output,
             bbox=bbox,
-            height=mask.shape[1],
-            width=mask.shape[0],
+            height=mask.shape[0],
+            width=mask.shape[1],
             interp="linear",
         )
 
