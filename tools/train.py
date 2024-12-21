@@ -1,19 +1,11 @@
 import argparse
 import yaml
 import os
-import json
-import numpy as np
-from PIL import Image
 import sys
 
-from tqdm.auto import tqdm
-import torch
-
 sys.path.append(".")
-from libs import utils
 from libs.datasets.data_loader import DatasetLoader
 from libs.models.aw_sdm import AWSDM
-import libs.utils.inference as infer
 
 
 def parse_args():
@@ -56,12 +48,13 @@ def main(args):
         args.val_anno_path, args.feature_root, args.feature_subdir_prefix
     )
 
-    for epoch in tqdm(range(args.epoch), desc="Train"):
-        loss = 0
-        for data in train_loader:
+    for epoch in range(args.epoch):
+        for i, data in enumerate(train_loader):
             visible_mask, invisible_mask, final_mask, bbox, sd_feats = data
             model.set_input(rgb=sd_feats, mask=visible_mask, target=final_mask)
             loss = model.step()
+            if i % args.trainer.print_freq == 0:
+                print(f"Epoch: {epoch}, step: {i+1}, loss: {loss}")
 
         total_iou = 0
         for data in val_loader:
@@ -73,7 +66,7 @@ def main(args):
             total_iou += iou
 
         mIoU = total_iou / val_loader.anno_len
-        print(f"\nEpoch {epoch} mIou: {mIoU}")
+        print(f"\nEpoch: {epoch}, mIou: {mIoU}")
 
 
 if __name__ == "__main__":
