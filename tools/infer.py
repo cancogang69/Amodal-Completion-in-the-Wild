@@ -133,6 +133,8 @@ class Tester(object):
                 interp="nearest",
             )
 
+            break
+
             amodal_pred = infer.recover_mask(
                 mask=amodal_patch_pred,
                 bbox=bbox,

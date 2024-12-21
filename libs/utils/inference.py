@@ -61,6 +61,10 @@ def net_forward_aw_sdm(
         .cuda()
     )
 
+    print(torch.cat([inmodal_patch], dim=1))
+
+    exit()
+
     with torch.no_grad():
         if use_rgb:
             output = model.model(torch.cat([inmodal_patch], dim=1), image)
