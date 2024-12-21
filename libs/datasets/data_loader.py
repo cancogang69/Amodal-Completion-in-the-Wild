@@ -130,7 +130,7 @@ class DatasetLoader(object):
             mask = cv2.fillPoly(
                 mask, np.array([polygon]), color=[255, 255, 255]
             )
-
+        mask[mask > 0] = 1
         return mask
 
     def __next__(self):
@@ -147,7 +147,6 @@ class DatasetLoader(object):
             image_h, image_w, anno["mask"]["segmentations"]
         )
 
-        print(sum(visible_mask > 0))
         bbox = mask_to_bbox(visible_mask)
         print(bbox)
         sd_feats = self.__get_feature_from_save(anno["feature_file_name"])
