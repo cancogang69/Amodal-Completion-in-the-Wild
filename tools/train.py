@@ -58,13 +58,13 @@ def main(args):
 
     for epoch in tqdm(range(args.epoch), desc="Train", leave=True):
         loss = 0
-        for data in tqdm(train_loader, desc=f"Train: {epoch}", leave=False):
+        for data in tqdm(train_loader):
             visible_mask, invisible_mask, final_mask, bbox, sd_feats = data
             model.set_input(rgb=sd_feats, mask=visible_mask, target=final_mask)
             loss = model.step()
 
         total_iou = 0
-        for data in tqdm(val_loader, desc=f"Validation: {epoch}", leave=False):
+        for data in tqdm(val_loader):
             visible_mask, invisible_mask, final_mask, bbox, sd_feats = data
             iou = model.evaluate(
                 rgb=sd_feats, mask=visible_mask, bbox=bbox, target=final_mask
