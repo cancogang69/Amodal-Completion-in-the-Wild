@@ -43,7 +43,7 @@ def main(args):
     if not hasattr(args, "exp_path"):
         args.exp_path = os.path.dirname(args.config_path)
 
-    model = AWSDM(args.model, dist_model=True)
+    model = AWSDM(args.model, dist_model=False)
     model.load_state(args.pretrained_path)
     model.switch_to("train")
 
