@@ -169,7 +169,7 @@ def main(args):
                 os.makedirs(cur_folder)
 
             tensor_file_name = os.path.join(
-                cur_folder, f"{anno['file_name'][:-4]}_{anno['id']}_.pt"
+                cur_folder, f"{anno['file_name'][:-4]}_{anno['id']}.pt"
             )
             torch.save(value.squeeze(0).cpu(), tensor_file_name)
 
