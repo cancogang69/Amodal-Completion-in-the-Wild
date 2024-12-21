@@ -61,8 +61,7 @@ def net_forward_aw_sdm(
         .cuda()
     )
 
-    print(inmodal_patch.shape)
-    print(torch.cat([inmodal_patch], dim=1).size())
+    print(image[0].size())
 
     exit()
 
