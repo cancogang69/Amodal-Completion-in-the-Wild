@@ -72,7 +72,6 @@ class DatasetLoader(object):
     ):
         org_h, org_w = image_height, image_width
         src_ft_dict = {}
-        print(sd_features)
         for layer_i in [0, 1, 2, 3]:
             org_src_ft = sd_features[layer_i]
             src_ft_new_bbox = [
@@ -113,6 +112,7 @@ class DatasetLoader(object):
                     src_ft, bbox, pad_value=(0,) * src_ft.shape[-1]
                 )  # h x w x L
                 src_ft = torch.tensor(src_ft).permute(2, 0, 1).unsqueeze(0)
+                print(cur_upsample_sz, cur_upsample_sz)
                 src_ft = nn.Upsample(
                     size=(cur_upsample_sz, cur_upsample_sz), mode="bilinear"
                 )(src_ft).squeeze(
