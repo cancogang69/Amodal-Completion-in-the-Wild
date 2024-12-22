@@ -65,12 +65,12 @@ class SingleStageModel(object):
     def load_pretrain(self, load_path):
         utils.load_state(load_path, self.model)
 
-    def save_state(self, path, Iter):
-        path = os.path.join(path, "ckpt_iter_{}.pth.tar".format(Iter))
+    def save_state(self, path, epoch):
+        path = os.path.join(path, f"ckpt_epoch_{epoch}.pth.tar")
 
         torch.save(
             {
-                "step": Iter,
+                "step": epoch,
                 "state_dict": self.model.state_dict(),
                 "optimizer": self.optim.state_dict(),
             },

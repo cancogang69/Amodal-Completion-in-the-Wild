@@ -67,6 +67,5 @@ class AWSDM(SingleStageModel):
         loss = self.criterion(output, self.target) / self.world_size
         self.optim.zero_grad()
         loss.backward()
-        # average_gradients(self.model)
         self.optim.step()
         return {"loss": loss}

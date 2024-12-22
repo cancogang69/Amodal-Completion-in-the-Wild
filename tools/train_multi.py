@@ -57,6 +57,8 @@ def train(rank, world_size):
         config["feature_subdir_prefix"],
     )
 
+    best_mIoU = 0
+
     for epoch in range(int(config["epoch"])):
         for i, data in enumerate(train_loader):
             visible_mask, invisible_mask, final_mask, bbox, sd_feats = data
@@ -81,7 +83,16 @@ def train(rank, world_size):
             total_iou += iou
 
         mIoU = total_iou / val_loader.anno_len
-        print(f"\nEpoch: {epoch}, mIou: {mIoU}")
+
+        if best_mIoU < mIoU and rank == 0:
+            print("Saving new best checkpoint...")
+            best_mIoU = mIoU
+            model.save_state(path=config["save_dir"], epoch=epoch)
+            print("Saving done!")
+
+        print(f"\nEpoch: {epoch}, best mIoU {best_mIoU}, mIoU: {mIoU}")
+
+        dist.barrier()
 
     # Clean up
     dist.destroy_process_group()
