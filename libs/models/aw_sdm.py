@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-from libs.utils import average_gradients
 from libs.utils.inference import recover_mask
 from . import SingleStageModel
 
@@ -12,6 +11,7 @@ class AWSDM(SingleStageModel):
     def __init__(self, params, pretrained_path=None, dist_model=False):
         super(AWSDM, self).__init__(params, dist_model)
         self.params = params
+        self.dist_model = dist_model
         self.use_rgb = params.get("use_rgb", False)
 
         if pretrained_path is not None:
@@ -19,12 +19,14 @@ class AWSDM(SingleStageModel):
 
         self.criterion = nn.CrossEntropyLoss()
 
-    def set_input(self, rgb=None, mask=None, target=None):
+    def set_input(self, rgb=None, mask=None, target=None, rank=None):
+        device = f"cuda:{rank}" if self.dist_model else "cuda"
+
         self.rgb = {}
         for key_i in rgb.keys():
-            self.rgb[key_i] = torch.Tensor(rgb[key_i]).unsqueeze(0).cuda()
-        self.mask = torch.Tensor(mask).unsqueeze(0).unsqueeze(0).cuda()
-        self.target = torch.Tensor(target).unsqueeze(0).long().cuda()
+            self.rgb[key_i] = torch.Tensor(rgb[key_i]).unsqueeze(0).to(device)
+        self.mask = torch.Tensor(mask).unsqueeze(0).unsqueeze(0).to(device)
+        self.target = torch.Tensor(target).unsqueeze(0).long().to(device)
 
     def evaluate(self, rgb, mask, bbox, target):
         self.set_input(rgb=rgb, mask=mask, target=target)

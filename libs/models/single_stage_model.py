@@ -2,6 +2,7 @@ import os
 import torch
 import torch.backends.cudnn as cudnn
 import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
 
 from libs.models import backbone
 from libs import utils
@@ -9,18 +10,18 @@ from libs import utils
 
 class SingleStageModel(object):
 
-    def __init__(self, params, dist_model=False):
+    def __init__(self, params, dist_model=False, rank=None):
         self.model = backbone.__dict__[params["backbone_arch"]](
             **params["backbone_param"]
         )
 
         utils.init_weights(self.model, init_type="xavier")
 
-        self.model.cuda()
         if dist_model:
-            self.model = utils.DistModule(self.model)
-            self.world_size = dist.get_world_size()
+            self.model = self.model.to(torch.device(f"cuda:{rank}"))
+            self.model = DDP(self.model, device_ids=[rank])
         else:
+            self.model.cuda()
             self.model = backbone.FixModule(self.model)
             self.world_size = 1
 
