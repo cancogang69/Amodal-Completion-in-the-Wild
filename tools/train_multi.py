@@ -59,7 +59,7 @@ def train(rank, world_size):
         config["feature_subdir_prefix"],
     )
 
-    for epoch in range(config["epoch"]):
+    for epoch in range(int(config["epoch"])):
         for i, data in enumerate(train_loader):
             visible_mask, invisible_mask, final_mask, bbox, sd_feats = data
             model.set_input(rgb=sd_feats, mask=visible_mask, target=final_mask)
