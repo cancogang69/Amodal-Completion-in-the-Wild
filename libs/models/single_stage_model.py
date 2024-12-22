@@ -20,6 +20,7 @@ class SingleStageModel(object):
         if dist_model:
             self.model = self.model.to(torch.device(f"cuda:{rank}"))
             self.model = DDP(self.model, device_ids=[rank])
+            self.world_size = torch.cuda.device_count()
         else:
             self.model.cuda()
             self.model = backbone.FixModule(self.model)

@@ -6,8 +6,6 @@ sys.path.append(".")
 
 import torch
 import torch.distributed as dist
-from torch.nn.parallel import DistributedDataParallel as DDP
-import torch.nn as nn
 
 from libs.datasets.data_loader import DatasetLoader
 from libs.models.aw_sdm import AWSDM
