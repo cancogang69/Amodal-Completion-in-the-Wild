@@ -44,10 +44,9 @@ class AWSDM(SingleStageModel):
         )
 
         intersection = ((predict == 1) & (target == 1)).sum()
-        union = ((predict == 1) | (target == 1)).sum()
         predict_area = (predict == 1).sum()
         target_area = (target == 1).sum()
-        iou = intersection / (predict_area + target_area + union)
+        iou = intersection / (predict_area + target_area - intersection)
 
         return iou
 
