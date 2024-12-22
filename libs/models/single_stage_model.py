@@ -11,7 +11,7 @@ from libs import utils
 class SingleStageModel(object):
 
     def __init__(self, params, dist_model=False, rank=None):
-        self.model = backbone.__dict__[params["backbone_arch"]](
+        self.model = backbone.__dict__[params["model"]["backbone_arch"]](
             **params["backbone_param"]
         )
 
