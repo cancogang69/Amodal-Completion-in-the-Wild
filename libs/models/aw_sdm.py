@@ -8,8 +8,12 @@ from . import SingleStageModel
 
 class AWSDM(SingleStageModel):
 
-    def __init__(self, params, pretrained_path=None, dist_model=False):
-        super(AWSDM, self).__init__(params, dist_model)
+    def __init__(
+        self, params, pretrained_path=None, dist_model=False, rank=None
+    ):
+        super(AWSDM, self).__init__(
+            params=params, dist_model=dist_model, rank=rank
+        )
         self.params = params
         self.dist_model = dist_model
         self.use_rgb = params.get("use_rgb", False)
