@@ -57,6 +57,9 @@ def train(rank, world_size):
         config["feature_subdir_prefix"],
     )
 
+    if not os.path.exists(config["save_dir"]):
+        os.makedirs(config["save_dir"])
+
     best_mIoU = 0
 
     for epoch in range(int(config["epoch"])):
