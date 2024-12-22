@@ -71,7 +71,11 @@ def train(rank, world_size):
         for data in val_loader:
             visible_mask, invisible_mask, final_mask, bbox, sd_feats = data
             iou = model.evaluate(
-                rgb=sd_feats, mask=visible_mask, bbox=bbox, target=final_mask
+                rgb=sd_feats,
+                mask=visible_mask,
+                bbox=bbox,
+                target=final_mask,
+                rank=rank,
             )
 
             total_iou += iou
