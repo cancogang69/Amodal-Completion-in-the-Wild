@@ -16,7 +16,7 @@ class AWSDM(SingleStageModel):
         )
         self.params = params
         self.dist_model = dist_model
-        self.use_rgb = params.get("use_rgb", False)
+        self.use_rgb = params["model"].get("use_rgb", False)
 
         if pretrained_path is not None:
             self.load_state(pretrained_path)
