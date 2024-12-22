@@ -43,6 +43,7 @@ def train(rank, world_size):
         params=config_yaml,
         pretrained_path=config["pretrained_path"],
         dist_model=True,
+        rank=rank,
     )
     model.switch_to("train")
 
