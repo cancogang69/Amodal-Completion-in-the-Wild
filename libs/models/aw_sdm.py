@@ -32,8 +32,8 @@ class AWSDM(SingleStageModel):
         self.mask = torch.Tensor(mask).unsqueeze(0).unsqueeze(0).to(device)
         self.target = torch.Tensor(target).unsqueeze(0).long().to(device)
 
-    def evaluate(self, rgb, mask, bbox, target):
-        self.set_input(rgb=rgb, mask=mask, target=target)
+    def evaluate(self, rgb, mask, bbox, target, rank=None):
+        self.set_input(rgb=rgb, mask=mask, target=target, rank=rank)
         output = self.forward_only()
         predict = recover_mask(
             mask=output,
