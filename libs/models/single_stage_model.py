@@ -12,7 +12,7 @@ class SingleStageModel(object):
 
     def __init__(self, params, dist_model=False, rank=None):
         self.model = backbone.__dict__[params["model"]["backbone_arch"]](
-            **params["backbone_param"]
+            **params["model"]["backbone_param"]
         )
 
         utils.init_weights(self.model, init_type="xavier")
