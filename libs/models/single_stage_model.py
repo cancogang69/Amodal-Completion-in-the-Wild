@@ -25,22 +25,24 @@ class SingleStageModel(object):
             self.model = backbone.FixModule(self.model)
             self.world_size = 1
 
-        if params["optim"] == "SGD":
+        if params["model"]["optim"] == "SGD":
             self.optim = torch.optim.SGD(
                 self.model.parameters(),
-                lr=params["lr"],
+                lr=params["model"]["lr"],
                 momentum=0.9,
-                weight_decay=params["weight_decay"],
+                weight_decay=params["model"]["weight_decay"],
             )
 
-        elif params["optim"] == "Adam":
+        elif params["model"]["optim"] == "Adam":
             self.optim = torch.optim.Adam(
                 self.model.parameters(),
-                lr=params["lr"],
-                betas=(params["beta1"], 0.999),
+                lr=params["model"]["lr"],
+                betas=(params["model"]["beta1"], 0.999),
             )
         else:
-            raise Exception("No such optimizer: {}".format(params["optim"]))
+            raise Exception(
+                "No such optimizer: {}".format(params["model"]["optim"])
+            )
 
         cudnn.benchmark = True
 
