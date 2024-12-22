@@ -38,7 +38,7 @@ def train(rank, world_size):
 
     with open(config["config_path"]) as f:
         config_yaml = yaml.load(f, Loader=yaml.FullLoader)
-
+    print(config_yaml)
     model = AWSDM(
         params=config_yaml,
         pretrained_path=config["pretrained_path"],
