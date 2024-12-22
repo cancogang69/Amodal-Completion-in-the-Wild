@@ -82,10 +82,6 @@ def train(rank, world_size):
     dist.destroy_process_group()
 
 
-def main(args):
-    
-
-
 if __name__ == "__main__":
     world_size = torch.cuda.device_count()
     local_rank = int(os.environ["LOCAL_RANK"])
