@@ -67,9 +67,10 @@ def train(rank, world_size):
     for epoch in range(int(config["epoch"])):
         for i, data in enumerate(train_loader):
             visible_mask, invisible_mask, final_mask, bbox, sd_feats, _ = data
-            model.set_input(
-                rgb=sd_feats, mask=visible_mask, target=final_mask, rank=rank
-            )
+            # model.set_input(
+            #     rgb=sd_feats, mask=visible_mask, target=final_mask, rank=rank
+            # )
+            model.set_input(mask=visible_mask, target=final_mask, rank=rank)
             loss = model.step()
             if i % config_yaml["trainer"]["print_freq"] == 0:
                 print(f"Epoch: {epoch}, step: {i+1}, loss: {loss}")
@@ -88,8 +89,14 @@ def train(rank, world_size):
                     sd_feats,
                     percent,
                 ) = data
+                # iou, predict = model.evaluate(
+                #     rgb=sd_feats,
+                #     mask=visible_mask,
+                #     bbox=bbox,
+                #     target=final_mask,
+                #     rank=rank,
+                # )
                 iou, predict = model.evaluate(
-                    rgb=sd_feats,
                     mask=visible_mask,
                     bbox=bbox,
                     target=final_mask,

@@ -26,9 +26,13 @@ class AWSDM(SingleStageModel):
     def set_input(self, rgb=None, mask=None, target=None, rank=None):
         device = f"cuda:{rank}" if self.dist_model else "cuda"
 
-        self.rgb = {}
-        for key_i in rgb.keys():
-            self.rgb[key_i] = torch.Tensor(rgb[key_i]).unsqueeze(0).to(device)
+        if rgb is not None:
+            self.rgb = {}
+            for key_i in rgb.keys():
+                self.rgb[key_i] = (
+                    torch.Tensor(rgb[key_i]).unsqueeze(0).to(device)
+                )
+
         self.mask = torch.Tensor(mask).unsqueeze(0).unsqueeze(0).to(device)
         self.target = torch.Tensor(target).unsqueeze(0).long().to(device)
 
@@ -52,7 +56,7 @@ class AWSDM(SingleStageModel):
 
     def forward_only(self):
         with torch.no_grad():
-            if self.use_rgb:
+            if self.use_rgb and self.rgb is not None:
                 output = self.model(self.mask, self.rgb)
             else:
                 output = self.model(self.mask)
@@ -62,7 +66,7 @@ class AWSDM(SingleStageModel):
     def step(self):
         self.optim.zero_grad()
 
-        if self.use_rgb:
+        if self.use_rgb and self.rgb is not None:
             output = self.model(self.mask, self.rgb)
         else:
             output = self.model(self.mask)
