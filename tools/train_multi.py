@@ -117,7 +117,9 @@ def train(rank, world_size):
                 axes[1][i].imshow(result[1], cmap="gray")
                 axes[1][i].axis("off")
 
-            plt.show()
+            plt.show(f"{config['save_dir']}/epoch_{epoch}_result.jpg")
+
+            fig.savefig("")
 
             for percent, value in percents_iou.items():
                 percents_iou[percent] = value[1] / value[0]
