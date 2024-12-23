@@ -43,6 +43,9 @@ class AWSDM(SingleStageModel):
             interp="linear",
         )
 
+        unique, counts = np.unique(predict, return_counts=True)
+        print(dict(zip(unique, counts)))
+
         intersection = ((predict == 1) & (target == 1)).sum()
         predict_area = (predict == 1).sum()
         target_area = (target == 1).sum()
