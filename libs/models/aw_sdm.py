@@ -73,6 +73,8 @@ class AWSDM(SingleStageModel):
         loss.backward()
         self.optim.step()
 
-        unique, counts = np.unique(output.detach().numpy(), return_counts=True)
+        unique, counts = np.unique(
+            output.detach().cpu().numpy(), return_counts=True
+        )
         print(dict(zip(unique, counts)))
         return {"loss": loss}
