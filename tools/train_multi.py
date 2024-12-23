@@ -6,6 +6,7 @@ sys.path.append(".")
 
 import torch
 import torch.distributed as dist
+import matplotlib.pyplot as plt
 
 from libs.datasets.data_loader import DatasetLoader
 from libs.models.aw_sdm import AWSDM
@@ -76,6 +77,8 @@ def train(rank, world_size):
         if epoch % int(config["val_freq"]) == 0:
             total_iou = 0
             percents_iou = dict()
+            result_count = 5
+            results = []
             for data in val_loader:
                 (
                     visible_mask,
@@ -85,7 +88,7 @@ def train(rank, world_size):
                     sd_feats,
                     percent,
                 ) = data
-                iou = model.evaluate(
+                iou, predict = model.evaluate(
                     rgb=sd_feats,
                     mask=visible_mask,
                     bbox=bbox,
@@ -99,6 +102,22 @@ def train(rank, world_size):
                 percents_iou[percent][0] += 1
                 percents_iou[percent][1] += iou
                 total_iou += iou
+
+                if len(results) < result_count:
+                    results.append([predict, final_mask])
+
+            nrows = 2
+            ncols = result_count
+            fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(8, 2))
+            plt.suptitle(f"EPOCH : {epoch}")
+
+            for i, result in enumerate(results):
+                axes[0][i].imshow(result[0], cmap="gray")
+                axes[0][i].axis("off")
+                axes[1][i].imshow(result[1], cmap="gray")
+                axes[1][i].axis("off")
+
+            plt.show()
 
             for percent, value in percents_iou.items():
                 percents_iou[percent] = value[1] / value[0]

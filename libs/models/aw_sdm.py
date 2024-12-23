@@ -43,17 +43,12 @@ class AWSDM(SingleStageModel):
             interp="linear",
         )
 
-        # unique, counts = np.unique(predict, return_counts=True)
-        # print(f"predict ({predict.shape=}): {dict(zip(unique, counts))}")
-        # unique, counts = np.unique(mask, return_counts=True)
-        # print(f"target ({target.shape=}): {dict(zip(unique, counts))}")
-
         intersection = ((predict == 1) & (target == 1)).sum()
         predict_area = (predict == 1).sum()
         target_area = (target == 1).sum()
         iou = intersection / (predict_area + target_area - intersection)
 
-        return iou
+        return iou, predict
 
     def forward_only(self):
         with torch.no_grad():
