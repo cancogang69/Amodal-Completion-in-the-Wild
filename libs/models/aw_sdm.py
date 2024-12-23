@@ -68,10 +68,7 @@ class AWSDM(SingleStageModel):
     def step(self):
         self.optim.zero_grad()
 
-        if self.use_rgb and self.rgb is not None:
-            output = self.model(self.mask, self.rgb)
-        else:
-            output = self.model(self.mask)
+        output = self.model(self.mask, self.rgb)
 
         loss = self.criterion(output, self.target) / self.world_size
         loss.backward()
