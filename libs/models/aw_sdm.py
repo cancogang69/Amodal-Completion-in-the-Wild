@@ -68,10 +68,11 @@ class AWSDM(SingleStageModel):
         else:
             output = self.model(self.mask)
 
-        unique, counts = np.unique(output.cpu().numpy(), return_counts=True)
-        print(dict(zip(unique, counts)))
         loss = self.criterion(output, self.target) / self.world_size
         self.optim.zero_grad()
         loss.backward()
         self.optim.step()
+
+        unique, counts = np.unique(output.detach().numpy(), return_counts=True)
+        print(dict(zip(unique, counts)))
         return {"loss": loss}
