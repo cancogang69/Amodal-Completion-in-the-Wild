@@ -70,7 +70,9 @@ def train(rank, world_size):
             # model.set_input(
             #     rgb=sd_feats, mask=visible_mask, target=final_mask, rank=rank
             # )
-            model.set_input(mask=visible_mask, target=final_mask, rank=rank)
+            model.set_input(
+                rgb=None, mask=visible_mask, target=final_mask, rank=rank
+            )
             loss = model.step()
             if i % config_yaml["trainer"]["print_freq"] == 0:
                 print(f"Epoch: {epoch}, step: {i+1}, loss: {loss}")

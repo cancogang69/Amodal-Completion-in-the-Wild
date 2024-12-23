@@ -32,8 +32,6 @@ class AWSDM(SingleStageModel):
                 self.rgb[key_i] = (
                     torch.Tensor(rgb[key_i]).unsqueeze(0).to(device)
                 )
-        else:
-            self.rgb = None
 
         self.mask = torch.Tensor(mask).unsqueeze(0).unsqueeze(0).to(device)
         self.target = torch.Tensor(target).unsqueeze(0).long().to(device)
