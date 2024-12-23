@@ -21,6 +21,7 @@ config = {
     "feature_subdir_prefix": os.getenv("FEATURE_SUBDIR_PREFIX"),
     "save_dir": os.getenv("SAVE_DIR"),
     "epoch": os.getenv("EPOCH"),
+    "val_freq": os.getenv("VAL_FREQ"),
 }
 
 
@@ -64,7 +65,7 @@ def train(rank, world_size):
 
     for epoch in range(int(config["epoch"])):
         for i, data in enumerate(train_loader):
-            visible_mask, invisible_mask, final_mask, bbox, sd_feats = data
+            visible_mask, invisible_mask, final_mask, bbox, sd_feats, _ = data
             model.set_input(
                 rgb=sd_feats, mask=visible_mask, target=final_mask, rank=rank
             )
@@ -72,28 +73,48 @@ def train(rank, world_size):
             if i % config_yaml["trainer"]["print_freq"] == 0:
                 print(f"Epoch: {epoch}, step: {i+1}, loss: {loss}")
 
-        total_iou = 0
-        for data in val_loader:
-            visible_mask, invisible_mask, final_mask, bbox, sd_feats = data
-            iou = model.evaluate(
-                rgb=sd_feats,
-                mask=visible_mask,
-                bbox=bbox,
-                target=final_mask,
-                rank=rank,
-            )
+        if epoch % config["val_freq"] == 0:
+            total_iou = 0
+            percents_iou = dict()
+            for data in val_loader:
+                (
+                    visible_mask,
+                    invisible_mask,
+                    final_mask,
+                    bbox,
+                    sd_feats,
+                    percent,
+                ) = data
+                iou = model.evaluate(
+                    rgb=sd_feats,
+                    mask=visible_mask,
+                    bbox=bbox,
+                    target=final_mask,
+                    rank=rank,
+                )
 
-            total_iou += iou
+                if percent not in percents_iou:
+                    percents_iou[percent] = [0, 0]
 
-        mIoU = total_iou / val_loader.anno_len
+                percents_iou[percent][0] += 1
+                percents_iou[percent][1] += iou
+                total_iou += iou
 
-        if best_mIoU < mIoU and rank == 0:
-            print("Saving new best checkpoint...")
-            best_mIoU = mIoU
-            model.save_state(path=config["save_dir"], epoch=epoch)
-            print("Saving done!")
+            for percent, value in percents_iou.items():
+                percents_iou[percent] = value[1] / value[0]
 
-        print(f"\nEpoch: {epoch}, best mIoU {best_mIoU}, mIoU: {mIoU}")
+            mIoU = total_iou / val_loader.anno_len
+
+            if best_mIoU < mIoU and rank == 0:
+                print("Saving new best checkpoint...")
+                best_mIoU = mIoU
+                model.save_state(path=config["save_dir"], epoch=epoch)
+                print("Saving done!")
+
+                print(f"\nEpoch: {epoch}, best mIoU {best_mIoU}, mIoU: {mIoU}")
+                print("IoU per percent:")
+                for percent, miou in percents_iou.items():
+                    print(f"{percent} percent: {miou} (mIoU)")
 
         dist.barrier()
 

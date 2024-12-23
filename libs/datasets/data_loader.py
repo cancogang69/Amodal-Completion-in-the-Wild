@@ -160,4 +160,13 @@ class DatasetLoader(object):
             sd_features=sd_feats,
         )
 
-        return [visible_mask, invisible_mask, final_mask, bbox, sd_feats]
+        percent = anno["percent"]
+
+        return [
+            visible_mask,
+            invisible_mask,
+            final_mask,
+            bbox,
+            sd_feats,
+            percent,
+        ]
