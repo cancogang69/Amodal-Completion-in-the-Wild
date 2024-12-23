@@ -44,7 +44,9 @@ class AWSDM(SingleStageModel):
         )
 
         unique, counts = np.unique(predict, return_counts=True)
-        print(dict(zip(unique, counts)))
+        print(f"predict ({predict.shape=}): {dict(zip(unique, counts))}")
+        unique, counts = np.unique(mask, return_counts=True)
+        print(f"target ({target.shape=}): {dict(zip(unique, counts))}")
 
         intersection = ((predict == 1) & (target == 1)).sum()
         predict_area = (predict == 1).sum()
