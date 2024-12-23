@@ -42,9 +42,9 @@ class UNetSDM5Skip(nn.Module):
             nn.ReLU(inplace=True),
         )
 
-        self.up0 = up(int(512 + 256 + 512 + 256), int(128 * w))
-        self.up1 = up(int(256 * w + 256), int(64 * w))
-        self.up2 = up(int(128 * w + 256), int(32 * w))
+        self.up0 = up(int(256 * w), int(128 * w))
+        self.up1 = up(int(256 * w), int(64 * w))
+        self.up2 = up(int(128 * w), int(32 * w))
         self.up3 = up(int(64 * w), int(16 * w))
         self.up4 = up(int(32 * w), int(16 * w))
         self.outc = outconv(int(16 * w), n_classes)
