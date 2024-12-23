@@ -18,7 +18,7 @@ class AWSDM(SingleStageModel):
         self.dist_model = dist_model
         self.use_rgb = params["model"].get("use_rgb", False)
 
-        if pretrained_path is not None:
+        if pretrained_path is not None and pretrained_path != "":
             self.load_state(pretrained_path)
 
         self.criterion = nn.CrossEntropyLoss()
