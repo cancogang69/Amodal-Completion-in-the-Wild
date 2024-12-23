@@ -73,7 +73,7 @@ def train(rank, world_size):
             if i % config_yaml["trainer"]["print_freq"] == 0:
                 print(f"Epoch: {epoch}, step: {i+1}, loss: {loss}")
 
-        if epoch % config["val_freq"] == 0:
+        if epoch % int(config["val_freq"]) == 0:
             total_iou = 0
             percents_iou = dict()
             for data in val_loader:
