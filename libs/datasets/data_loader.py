@@ -42,6 +42,7 @@ class DatasetLoader(object):
                     "image_width": img_info["width"],
                     "black_start": black_start,
                     "black_end": black_end,
+                    "percent": anno["percent"],
                 }
             )
 
